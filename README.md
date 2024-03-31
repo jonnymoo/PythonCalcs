@@ -18,7 +18,6 @@ Azure Functions Core Tools: Install the Azure Functions Core Tools following the
 ### Running the Example
 
    ```bash
-   cd calc_service
    func start
    ```
 ## Example: validate salary years
