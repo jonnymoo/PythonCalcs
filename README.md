@@ -23,7 +23,7 @@ Azure Functions Core Tools: Install the Azure Functions Core Tools following the
    ```
 ## Example: validate salary years
 
-A simple example of how to ask for salary records and do some simple dataframe manipulation
+An example of how to provide sample salary records and do some simple dataframe manipulation
 
 ### Example input
 
