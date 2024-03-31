@@ -4,6 +4,9 @@ import json
 import logging
 from example_validation import validation_logic
 
+app = func.FunctionApp()
+
+@app.route(route="validate")
 def validate_data_http(req: func.HttpRequest) -> func.HttpResponse:
 
   status_code = 200
@@ -24,6 +27,3 @@ def validate_data_http(req: func.HttpRequest) -> func.HttpResponse:
       status_code=status_code,
       mimetype="text/plain"
   )
-
-app = func.FunctionApp()
-app.route("validate")(validate_data_http)
