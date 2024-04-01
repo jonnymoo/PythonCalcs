@@ -7,10 +7,10 @@ class TestValidationLogic(unittest.TestCase):
     def test_validate_salary_records(self):
         data = {
             "folder": {
-                "date_joined_comp": "2022-12-01",
+                "datejoinedcomp": "2022-12-01",
                 "salary": [
-                {"date_started": "2022-12-01"},
-                {"date_started": "2023-04-01"}
+                {"datestarted": "2022-12-01"},
+                {"datestarted": "2023-04-01"}
                 ]
             },
             "inputs": {

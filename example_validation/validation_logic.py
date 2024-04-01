@@ -20,9 +20,9 @@ def validate_salary_records(data):
 
   required = {
     "folder": {
-        "date_joined_comp": None,
+        "datejoinedcomp": None,
         "salary": [
-        {"date_started": None}
+        {"datestarted": None}
         ]
     },
     "inputs": {
@@ -42,12 +42,12 @@ def validate_salary_records(data):
   df = pd.DataFrame(data['folder']['salary'])
 
   # Extract the year for each record (assuming a 'date' column) - If before 1st April we go the year before
-  df['year'] = pd.to_datetime(df['date_started']).dt.year \
-             - (pd.to_datetime(df['date_started']).dt.month < 4)
+  df['year'] = pd.to_datetime(df['datestarted']).dt.year \
+             - (pd.to_datetime(df['datestarted']).dt.month < 4)
 
 
   # Calculate the starting year (considering April 1st)
-  start_date = datetime.fromisoformat(data['folder']['date_joined_comp'])
+  start_date = datetime.fromisoformat(data['folder']['datejoinedcomp'])
   start_year = start_date.year - (start_date.month < 4)
   end_date = datetime.fromisoformat(data['inputs']['current_date'])
   end_year = end_date.year - (end_date.month < 4)
