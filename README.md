@@ -2,7 +2,6 @@
 
 This repository demonstrates a Python proof-of-concept (POC) for packaging member data and performing calculations using the pandas library. It showcases how to:
 
-- **Specify required data formats:** Define the expected structure of member data for accurate processing.
 - **Request data based on shape:** Retrieve data adhering to the specified format to ensure compatibility with calculations.
 - **Process data with pandas:** Use pandas to manipulate and analyse the acquired data.
 - **Produce meaningful output:** Generate results which can be used as either validations, or updates.
