@@ -65,7 +65,8 @@ An example of how to provide sample salary records and do some simple dataframe 
 ### Example output if shape not passed
 
 ```json
-{"required": {
+{
+  "required": {
   "folder": {
     "datejoinedcomp": null, 
     "salary": [{
@@ -79,17 +80,7 @@ An example of how to provide sample salary records and do some simple dataframe 
   "missing_keys": [{
     "key": "folder", 
     "reason": "missing", 
-    "example-sql": 
-      "SELECT (SELECT TOP 1 
-             datejoinedcomp, 
-             (SELECT datestarted
-               FROM UPMsalary salary2
-               WHERE salary2.folderID = folder1.folderID
-               FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
-            FROM UPMFOLDER folder1
-            WHERE folder1.folderID = @keyobjectid
-            FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER) AS folder 
-      FOR JSON PATH, WITHOUT_ARRAY_WRAPPER"
+    "example-sql": "SELECT (SELECT TOP 1 datejoinedcomp, \n          (SELECT datestarted\n          FROM UPMsalary salary2\n          WHERE salary2.folderID = folder1.folderID\n          FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary\n          FROM UPMFOLDER folder1\n          WHERE folder1.folderID = @keyobjectid\n          FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER) AS folder FOR JSON PATH, WITHOUT_ARRAY_WRAPPER"
   }]
 }
 ```
