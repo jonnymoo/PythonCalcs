@@ -7,6 +7,16 @@ This repository demonstrates a Python proof-of-concept (POC) for packaging membe
 - **Process data with pandas:** Use pandas to manipulate and analyse the acquired data.
 - **Produce meaningful output:** Generate results which can be used as either validations, or updates.
 
+## Concepts
+
+A calc is a stateless functions accessible at a REST end point
+The calc understands the shapes of data required.
+Data is passed in (not collected).
+Shapes can be used by consumers and used to generate ways (e.g. a sql server for JSON PATH statement) of getting the minimum data required to process the calc.
+Workflow can be used to orchestrate the calling of the end point and using the results.
+Other consumers can call the same REST APIs (or just use the function standalone)
+Juypter notebooks can be used to create live specification / documentation.
+
 ## Getting Started
 
 ### Prerequisites
@@ -20,6 +30,7 @@ Azure Functions Core Tools: Install the Azure Functions Core Tools following the
    ```bash
    func start
    ```
+
 ## Example: validate salary years
 
 An example of how to provide sample salary records and do some simple dataframe manipulation
@@ -38,5 +49,47 @@ An example of how to provide sample salary records and do some simple dataframe 
   "inputs": {
     "current_date": "2024-03-31"
   }
+}
+```
+
+### Example output if shape passed
+```json
+{
+  "outputs": {
+    "all_present": "true", 
+    "missing_years": []
+  }
+}
+```
+
+### Example output if shape not passed
+
+```json
+{"required": {
+  "folder": {
+    "datejoinedcomp": null, 
+    "salary": [{
+      "datestarted": null
+      }]
+    }, 
+    "inputs": {
+      "current_date": null
+    }
+  }, 
+  "missing_keys": [{
+    "key": "folder", 
+    "reason": "missing", 
+    "example-sql": 
+      "SELECT (SELECT TOP 1 
+             datejoinedcomp, 
+             (SELECT datestarted
+               FROM UPMsalary salary2
+               WHERE salary2.folderID = folder1.folderID
+               FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
+            FROM UPMFOLDER folder1
+            WHERE folder1.folderID = @keyobjectid
+            FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER) AS folder 
+      FOR JSON PATH, WITHOUT_ARRAY_WRAPPER"
+  }]
 }
 ```
