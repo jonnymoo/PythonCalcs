@@ -12,7 +12,7 @@ This repository demonstrates a Python proof-of-concept (POC) for packaging membe
 - A calc is a stateless functions accessible at a REST end point
 - The calc understands the shapes of data required
 - Data is passed in (not collected)
-- Shapes can be used by consumers and used to generate ways (e.g. a sql server for JSON PATH statement) of - getting the minimum data required to process the calc
+- Shapes can be used by consumers and used to generate ways of getting the minimum data required to process the calc (e.g. a sql server for JSON PATH statement)
 - Workflow can be used to orchestrate the calling of the end point and using the results
 - Other consumers can call the same REST APIs (or just use the function standalone)
 - Juypter notebooks can be used to create live specification / documentation
