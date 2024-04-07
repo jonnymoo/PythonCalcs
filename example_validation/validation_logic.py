@@ -2,6 +2,17 @@ import pandas as pd
 from datetime import datetime
 from shape import shape_utils
 
+@shape_utils.shape({
+  "folder": {
+    "datejoinedcomp": None,
+    "salary": [
+      {"datestarted": None}
+    ]
+  },
+  "inputs": {
+    "current_date": None
+  }
+})
 def validate_salary_records(data):
   """
   This function validates a list of salary records to ensure there's at least
@@ -17,27 +28,7 @@ def validate_salary_records(data):
   Returns:
       outputs.all_present: True if there's at least one entry for each year, False otherwise.
   """
-
-  required = {
-    "folder": {
-        "datejoinedcomp": None,
-        "salary": [
-        {"datestarted": None}
-        ]
-    },
-    "inputs": {
-        "current_date": None
-    }
-  }
-
-  match, missing_keys = shape_utils.check_shape(required, data)
-
-  if not match:
-    return {
-      "required": required,
-      "missing_keys": missing_keys
-    }
-
+  
   # Convert salary records to a pandas DataFrame (assuming appropriate structure)
   df = pd.DataFrame(data['folder']['salary'])
 

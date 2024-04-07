@@ -16,14 +16,19 @@ def validate_data_http(req: func.HttpRequest) -> func.HttpResponse:
     data = req.get_json()
     
     # Call the validation logic from the imported module
-    response = json.dumps(validation_logic.validate_salary_records(data))
+    response = validation_logic.validate_salary_records(data);
+  
+  except ValueError as e:
+    # Extract the JSON data from the exception
+    response = e.args[0]  # Access the JSON object within the exception
+    status_code = 400  # Bad Request
 
   except Exception as e:  # Catch any exceptions raised during validation
-    response = f"Validation error: {str(e)}"
+    response = {"message": str(e)}
     status_code = 500  # Internal Server Error
 
   return func.HttpResponse(
-      body=response,
+      body=json.dumps(response),
       status_code=status_code,
-      mimetype="text/plain"
+      mimetype="application/json"
   )

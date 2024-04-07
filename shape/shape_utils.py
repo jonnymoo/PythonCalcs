@@ -1,4 +1,24 @@
 import json
+from typing import Dict
+
+def shape(shape):
+  """
+  Decorator to define the required shape for a function.
+  """
+  def decorator(func):
+    def wrapped_func(data):
+      return validate_with_shape(func, shape, data)
+    return wrapped_func  
+  return decorator
+
+def validate_with_shape(func, shape, data):
+  match, missing_keys = check_shape(shape, data)
+  if not match:
+    raise ValueError( {
+      "required": shape,
+      "missing_keys": missing_keys
+    })
+  return func(data)
 
 def check_shape(required_shape, actual_input):
     # Recursively check for matching keys and types
