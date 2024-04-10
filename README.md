@@ -6,6 +6,10 @@ This repository demonstrates a Python proof-of-concept (POC) for packaging membe
 - **Process data with pandas:** Use pandas to manipulate and analyse the acquired data.
 - **Produce meaningful output:** Generate results which can be used as either validations, or updates.
 
+## Shapes
+
+See https://codepen.io/Jonny-Muir/full/XWQqqwy for an example of how to build a shape.
+
 ## Concepts
 
 - A calc is a stateless functions accessible at a REST end point
