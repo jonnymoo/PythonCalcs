@@ -1,5 +1,20 @@
 import json
 from typing import Dict
+import string
+
+allowed_chars = set(string.ascii_letters + string.digits + '_')
+
+def sanitize_name(name):
+  """
+  Sanitizes a string by removing non-alphanumeric characters.
+
+  Args:
+      name: The string to be sanitized.
+
+  Returns:
+      A new string containing only alphanumeric characters and underscores.
+  """
+  return ''.join([char for char in name if char in allowed_chars])
 
 def shape(shape):
   """
@@ -30,7 +45,7 @@ def check_shape(required_shape, actual_input):
                 if lower_key not in ["folder", "person", "paylocation", "payroll", "payrollmember", "company", "client", "scheme", "area", "system"]:
                     missing_keys.append({"key": key, "reason": "missing"})
                 else:
-                    example_sql = create_sql({key: req_value}, "@keyobjectid") 
+                    example_sql, _ = create_sql({key: req_value}, "@keyobjectid") 
                     missing_keys.append({"key": key, "reason": "missing", "example-sql": example_sql})
             elif isinstance(req_value, dict):
                 if not isinstance(actual[key], dict):
@@ -65,29 +80,55 @@ def create_sql(required_shape, id_param_name=None):
   def build_nested_sql( obj, root_alias = None, root_name = None, counter=1):
     # Function to recursively build nested SQL queries with explicit column selection
     selected_columns = []
+    filters = []
+    bindvars = []
+
     for key, value in obj.items():
+      key = sanitize_name(key)
+      
       if isinstance(value, dict):
         # Object - many-to-one relationship
         alias = f"{key}{counter}"
+        nested_sql, nested_bindvars, nested_filters = build_nested_sql(value, alias, key, counter+1)
+        bindvars.extend(nested_bindvars)
+        whereclauses = []
+        if(root_alias):
+          whereclauses.append(f"{alias}.{key}ID = {root_alias}.{key}ID")
+        elif(id_param_name):
+          whereclauses.append(f"{alias}.{key}ID = {id_param_name}")
+        
+        whereclauses.extend(nested_filters)
+        
         selected_columns.append(f"""
-          (SELECT {build_nested_sql(value, alias, key, counter+1)}
+          (SELECT {nested_sql}
           FROM UPM{key.upper()} {alias}
-          {f"WHERE {alias}.{key}ID = {root_alias}.{key}ID" if root_alias else f"WHERE {alias}.{key}ID = {id_param_name}" if id_param_name else ""}
+          {"WHERE " if len(whereclauses) else ""}{" AND ".join(whereclauses)}
           FOR JSON PATH, INCLUDE_NULL_VALUES) AS {key}
         """)
       elif isinstance(value, list):
         # List - one-to-many relationship with foreign key on child
         alias = f"{key}{counter}"
+        nested_sql, nested_bindvars, nested_filters = build_nested_sql(value[0], alias, key, counter+1)
+        bindvars.extend(nested_bindvars)
+        whereclauses = []
+        if(root_alias):
+          whereclauses.append(f"{alias}.{root_name}ID = {root_alias}.{root_name}ID")
+
         selected_columns.append(f"""
-          (SELECT {build_nested_sql(value[0], alias, key, counter+1)}
+          (SELECT {nested_sql}
           FROM UPM{key} {alias}
-          {f"WHERE {alias}.{root_name}ID = {root_alias}.{root_name}ID" if root_alias else ""}
+          {"WHERE " if len(whereclauses) else ""}{" AND ".join(whereclauses)}
           FOR JSON PATH, INCLUDE_NULL_VALUES) AS {key}
         """)
+      elif(value):
+        bindvars.append(value)
+        filters.append(f"{root_alias}.{key} = %s")
       else:
         # Normal member - column name 
         selected_columns.append(key)
-    return (", ".join(selected_columns)).strip()
+        
+    return (", ".join(selected_columns)).strip(), bindvars, filters
 
   # Build selected columns with explicit names from the shape definition
-  return f"SELECT {build_nested_sql(required_shape)} FOR JSON PATH"
+  nested_sql, nested_bindvars, _ = build_nested_sql(required_shape)
+  return f"SELECT {nested_sql} FOR JSON PATH", nested_bindvars

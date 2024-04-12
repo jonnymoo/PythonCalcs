@@ -56,12 +56,11 @@ def test_check_shape_missing_folder():
 
     expected_example_sql = """
     SELECT 
-    (SELECT TOP 1 
-        datejoinedcomp
+    (SELECT  datejoinedcomp
     FROM UPMFOLDER folder1
     WHERE folder1.folderID = @keyobjectid
-    FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER) AS folder 
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER"""
+    FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+    FOR JSON PATH"""
     assert "".join(missing_keys[0]["example-sql"].split()) == "".join(expected_example_sql.split())
 
 
@@ -80,23 +79,55 @@ def test_create_sql():
 
     expected = """
     SELECT 
-        (SELECT TOP 1 
-            datejoinedcomp, 
-            (SELECT TOP 1 payrollname
+        (SELECT datejoinedcomp, 
+            (SELECT payrollname
             FROM UPMPAYROLL payroll2
             WHERE payroll2.payrollID = folder1.payrollID
-            FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER) AS payroll, 
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS payroll, 
             (SELECT basicsalary
             FROM UPMsalary salary2
             WHERE salary2.folderID = folder1.folderID
             FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
         FROM UPMFOLDER folder1
         WHERE folder1.folderID = @keyobjectid
-        FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER) AS folder 
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER"""
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+    FOR JSON PATH"""
 
-    sql = shape_utils.create_sql(required_shape,"@keyobjectid")
+    sql,_ = shape_utils.create_sql(required_shape,"@keyobjectid")
     assert "".join(sql.split()) == "".join(expected.split())
+
+def test_create_sql_sanitised():
+    required_shape = {
+        "folder": {
+            "date joined comp;": None,
+            "payroll": {
+            "payrollname": None
+            },
+            "sal;ary": [
+            {"basicsalary": None}
+            ]
+        }
+    }
+
+    expected = """
+    SELECT 
+        (SELECT datejoinedcomp, 
+            (SELECT payrollname
+            FROM UPMPAYROLL payroll2
+            WHERE payroll2.payrollID = folder1.payrollID
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS payroll, 
+            (SELECT basicsalary
+            FROM UPMsalary salary2
+            WHERE salary2.folderID = folder1.folderID
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
+        FROM UPMFOLDER folder1
+        WHERE folder1.folderID = @keyobjectid
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+    FOR JSON PATH"""
+
+    sql,_ = shape_utils.create_sql(required_shape,"@keyobjectid")
+    assert "".join(sql.split()) == "".join(expected.split())
+
 
 
 def test_create_sql_no_primary_key():
@@ -128,5 +159,41 @@ def test_create_sql_no_primary_key():
         FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
     FOR JSON PATH"""
 
-    sql = shape_utils.create_sql(required_shape)
+    sql,_ = shape_utils.create_sql(required_shape)
     assert "".join(sql.split()) == "".join(expected.split())
+
+
+def test_create_sql_with_filter():
+    required_shape = {
+        "folder": {
+            "datejoinedcomp": None,
+            "folderref": "MYREF",
+            "payroll": {
+            "payrollname": None
+            },
+            "salary": [
+            {"basicsalary": None}
+            ]
+        }
+    }
+
+    expected = """
+    SELECT 
+        (SELECT  
+            datejoinedcomp, 
+            (SELECT payrollname
+            FROM UPMPAYROLL payroll2
+            WHERE payroll2.payrollID = folder1.payrollID
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS payroll, 
+            (SELECT basicsalary
+            FROM UPMsalary salary2
+            WHERE salary2.folderID = folder1.folderID
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
+        FROM UPMFOLDER folder1
+        WHERE folder1.folderref = %s
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+    FOR JSON PATH"""
+
+    sql,bindvars = shape_utils.create_sql(required_shape)
+    assert "".join(sql.split()) == "".join(expected.split())
+    assert bindvars == ["MYREF"]

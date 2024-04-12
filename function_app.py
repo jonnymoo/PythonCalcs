@@ -50,12 +50,13 @@ def query_http(req: func.HttpRequest) -> func.HttpResponse:
     data = req.get_json()
     
     # Get the required SQL
-    sql = "SELECT CAST (("+shape_utils.create_sql(data)+") AS NVARCHAR(MAX))"
+    sql, bind_vars = shape_utils.create_sql(data);
+    sql = f"SELECT CAST (({sql}) AS NVARCHAR(MAX))"
     
     # Connect to SQL Server database using integrated security
     with pymssql.connect(server_name,user,password,database) as conn:
       with conn.cursor() as cursor:
-        cursor.execute(sql)
+        cursor.execute(sql, bind_vars)
         row = cursor.fetchone()
         return func.HttpResponse(
           body=row[0],
