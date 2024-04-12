@@ -30,7 +30,7 @@ def check_shape(required_shape, actual_input):
                 if lower_key not in ["folder", "person", "paylocation", "payroll", "payrollmember", "company", "client", "scheme", "area", "system"]:
                     missing_keys.append({"key": key, "reason": "missing"})
                 else:
-                    example_sql = create_sql({key: req_value}) 
+                    example_sql = create_sql({key: req_value}, "@keyobjectid") 
                     missing_keys.append({"key": key, "reason": "missing", "example-sql": example_sql})
             elif isinstance(req_value, dict):
                 if not isinstance(actual[key], dict):
@@ -51,7 +51,7 @@ def check_shape(required_shape, actual_input):
     # Return result and any missing keys
     return len(missing_keys) == 0, missing_keys
 
-def create_sql(required_shape, id_param_name="@keyobjectid"):
+def create_sql(required_shape, id_param_name=None):
   """
   Creates a SQL statement string based on a UPM object shape definition.
 
@@ -70,10 +70,10 @@ def create_sql(required_shape, id_param_name="@keyobjectid"):
         # Object - many-to-one relationship
         alias = f"{key}{counter}"
         selected_columns.append(f"""
-          (SELECT TOP 1 {build_nested_sql(value, alias, key, counter+1)}
+          (SELECT {build_nested_sql(value, alias, key, counter+1)}
           FROM UPM{key.upper()} {alias}
-          {f"WHERE {alias}.{key}ID = {root_alias}.{key}ID" if root_alias else f"WHERE {alias}.{key}ID = {id_param_name}"}
-          FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER) AS {key}
+          {f"WHERE {alias}.{key}ID = {root_alias}.{key}ID" if root_alias else f"WHERE {alias}.{key}ID = {id_param_name}" if id_param_name else ""}
+          FOR JSON PATH, INCLUDE_NULL_VALUES) AS {key}
         """)
       elif isinstance(value, list):
         # List - one-to-many relationship with foreign key on child
@@ -90,4 +90,4 @@ def create_sql(required_shape, id_param_name="@keyobjectid"):
     return (", ".join(selected_columns)).strip()
 
   # Build selected columns with explicit names from the shape definition
-  return f"SELECT {build_nested_sql(required_shape)} FOR JSON PATH, WITHOUT_ARRAY_WRAPPER"
+  return f"SELECT {build_nested_sql(required_shape)} FOR JSON PATH"

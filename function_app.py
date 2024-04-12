@@ -1,8 +1,15 @@
 import azure.functions as func
-import datetime
 import json
-import logging
 from example_validation import validation_logic
+from shape import shape_utils
+import pymssql
+import os
+
+server_name = os.environ.get('SHAPE_SERVER_NAME')
+user = os.environ.get('SHAPE_USER')
+password = os.environ.get('SHAPE_USER_PASSWORD')
+database = os.environ.get('SHAPE_DATABASE')
+
 
 app = func.FunctionApp()
 
@@ -17,6 +24,43 @@ def validate_data_http(req: func.HttpRequest) -> func.HttpResponse:
     
     # Call the validation logic from the imported module
     response = validation_logic.validate_salary_records(data);
+  
+  except ValueError as e:
+    # Extract the JSON data from the exception
+    response = e.args[0]  # Access the JSON object within the exception
+    status_code = 400  # Bad Request
+
+  except Exception as e:  # Catch any exceptions raised during validation
+    response = {"message": str(e)}
+    status_code = 500  # Internal Server Error
+
+  return func.HttpResponse(
+      body=json.dumps(response),
+      status_code=status_code,
+      mimetype="application/json"
+  )
+
+@app.route(route="shape-query")
+def query_http(req: func.HttpRequest) -> func.HttpResponse:
+
+  status_code = 200
+
+  try:
+    # Get the data from the request body (adjust based on your data format)
+    data = req.get_json()
+    
+    # Get the required SQL
+    sql = "SELECT CAST (("+shape_utils.create_sql(data)+") AS NVARCHAR(MAX))"
+    
+    # Connect to SQL Server database using integrated security
+    with pymssql.connect(server_name,user,password,database) as conn:
+      with conn.cursor() as cursor:
+        cursor.execute(sql)
+        row = cursor.fetchone()
+        return func.HttpResponse(
+          body=row[0],
+          status_code=200,
+          mimetype="application/json")
   
   except ValueError as e:
     # Extract the JSON data from the exception

@@ -95,5 +95,38 @@ def test_create_sql():
         FOR JSON PATH, INCLUDE_NULL_VALUES, WITHOUT_ARRAY_WRAPPER) AS folder 
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER"""
 
+    sql = shape_utils.create_sql(required_shape,"@keyobjectid")
+    assert "".join(sql.split()) == "".join(expected.split())
+
+
+def test_create_sql_no_primary_key():
+    required_shape = {
+        "folder": {
+            "datejoinedcomp": None,
+            "payroll": {
+            "payrollname": None
+            },
+            "salary": [
+            {"basicsalary": None}
+            ]
+        }
+    }
+
+    expected = """
+    SELECT 
+        (SELECT  
+            datejoinedcomp, 
+            (SELECT payrollname
+            FROM UPMPAYROLL payroll2
+            WHERE payroll2.payrollID = folder1.payrollID
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS payroll, 
+            (SELECT basicsalary
+            FROM UPMsalary salary2
+            WHERE salary2.folderID = folder1.folderID
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
+        FROM UPMFOLDER folder1
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+    FOR JSON PATH"""
+
     sql = shape_utils.create_sql(required_shape)
     assert "".join(sql.split()) == "".join(expected.split())

@@ -87,3 +87,13 @@ An example of how to provide sample salary records and do some simple dataframe 
   }]
 }
 ```
+
+### Example get data from SQL Server database
+
+To do this you will need to set environment variables to connect to a shape database e.g.
+
+```bash
+export SHAPE_SERVER_NAME="mydatabaseserver" SHAPE_USER="myuser" SHAPE_USER_PASSWORD="mypassword" SHAPE_DATABASE="mydatabase"
+```
+
+And then pass it a shape - tip, get this from the [shape builder](https://codepen.io/Jonny-Muir/full/XWQqqwy)
