@@ -38,7 +38,7 @@ def test_validate_missing_fields():
         }
     }
 
-    expected_result = {'required': {
+    expected_result = {'input_missing': {'required': {
                             'folder': {
                                 'datejoinedcomp': None, 
                                     'salary': [
@@ -51,9 +51,8 @@ def test_validate_missing_fields():
                         'missing_keys': [
                             {'key': 'datestarted', 
                              'reason': 'missing'}]
-                    }
+                    }}
 
-    with pytest.raises(ValueError) as excinfo:
-        validation_logic.validate_salary_records(data)
+    result = validation_logic.validate_salary_records(data)
 
-    assert excinfo.value.args[0] == expected_result
+    assert result == expected_result

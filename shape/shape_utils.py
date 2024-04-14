@@ -29,10 +29,11 @@ def shape(shape):
 def validate_with_shape(func, shape, data):
   match, missing_keys = check_shape(shape, data)
   if not match:
-    raise ValueError( {
+    return {"input_missing": {
       "required": shape,
       "missing_keys": missing_keys
-    })
+    }}
+  
   return func(data)
 
 def check_shape(required_shape, actual_input):
