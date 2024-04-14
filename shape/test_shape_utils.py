@@ -69,18 +69,18 @@ def test_create_sql():
 
     expected = """
     SELECT 
-        (SELECT datejoinedcomp, 
-            (SELECT payrollname
+        (SELECT TOP 1 datejoinedcomp, 
+            (SELECT TOP 1 payrollname
             FROM UPMPAYROLL payroll2
             WHERE payroll2.payrollID = folder1.payrollID
-            FOR JSON PATH, INCLUDE_NULL_VALUES) AS payroll, 
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_payroll, 
             (SELECT basicsalary
             FROM UPMsalary salary2
             WHERE salary2.folderID = folder1.folderID
             FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
         FROM UPMFOLDER folder1
         WHERE folder1.folderID = @keyobjectid
-        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_folder 
     FOR JSON PATH"""
 
     sql,_ = shape_utils.create_sql(required_shape,"@keyobjectid")
@@ -101,18 +101,18 @@ def test_create_sql_sanitised():
 
     expected = """
     SELECT 
-        (SELECT datejoinedcomp, 
-            (SELECT payrollname
+        (SELECT TOP 1 datejoinedcomp, 
+            (SELECT TOP 1 payrollname
             FROM UPMPAYROLL payroll2
             WHERE payroll2.payrollID = folder1.payrollID
-            FOR JSON PATH, INCLUDE_NULL_VALUES) AS payroll, 
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_payroll, 
             (SELECT basicsalary
             FROM UPMsalary salary2
             WHERE salary2.folderID = folder1.folderID
             FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
         FROM UPMFOLDER folder1
         WHERE folder1.folderID = @keyobjectid
-        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_folder 
     FOR JSON PATH"""
 
     sql,_ = shape_utils.create_sql(required_shape,"@keyobjectid")
@@ -135,18 +135,18 @@ def test_create_sql_no_primary_key():
 
     expected = """
     SELECT 
-        (SELECT  
+        (SELECT TOP 1 
             datejoinedcomp, 
-            (SELECT payrollname
+            (SELECT TOP 1 payrollname
             FROM UPMPAYROLL payroll2
             WHERE payroll2.payrollID = folder1.payrollID
-            FOR JSON PATH, INCLUDE_NULL_VALUES) AS payroll, 
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_payroll, 
             (SELECT basicsalary
             FROM UPMsalary salary2
             WHERE salary2.folderID = folder1.folderID
             FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
         FROM UPMFOLDER folder1
-        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_folder 
     FOR JSON PATH"""
 
     sql,_ = shape_utils.create_sql(required_shape)
@@ -169,21 +169,43 @@ def test_create_sql_with_filter():
 
     expected = """
     SELECT 
-        (SELECT  
+        (SELECT TOP 1 
             datejoinedcomp, 
-            (SELECT payrollname
+            (SELECT TOP 1 payrollname
             FROM UPMPAYROLL payroll2
             WHERE payroll2.payrollID = folder1.payrollID
-            FOR JSON PATH, INCLUDE_NULL_VALUES) AS payroll, 
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_payroll, 
             (SELECT basicsalary
             FROM UPMsalary salary2
             WHERE salary2.folderID = folder1.folderID
             FOR JSON PATH, INCLUDE_NULL_VALUES) AS salary
         FROM UPMFOLDER folder1
         WHERE folder1.folderref = %s
-        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_folder 
     FOR JSON PATH"""
 
     sql,bindvars = shape_utils.create_sql(required_shape)
     assert "".join(sql.split()) == "".join(expected.split())
     assert bindvars == ["MYREF"]
+
+def test_create_sql_top_level_list():
+    required_shape = {
+        "folder": [{
+            "datejoinedcomp": None
+        }]
+    }
+
+    expected = """
+    SELECT 
+        (SELECT datejoinedcomp
+        FROM UPMfolder folder1
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+    FOR JSON PATH"""
+
+    sql,_ = shape_utils.create_sql(required_shape)
+    assert "".join(sql.split()) == "".join(expected.split())
+
+def test_convert_to_object():
+    result = [{'convert_to_object_test': [{'convert_to_object_subobject':{'mything':'thingy'}}]}]
+    converted = shape_utils.convert_lists_to_objects(result)
+    assert converted == {'test': {'subobject':{'mything':'thingy'}}}
