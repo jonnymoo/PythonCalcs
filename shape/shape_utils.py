@@ -41,12 +41,7 @@ def check_shape(required_shape, actual_input):
         missing_keys = []
         for key, req_value in required.items():
             if key not in actual:
-                lower_key = key.lower()
-                if lower_key not in ["folder", "person", "paylocation", "payroll", "payrollmember", "company", "client", "scheme", "area", "system"]:
-                    missing_keys.append({"key": key, "reason": "missing"})
-                else:
-                    example_sql, _ = create_sql({key: req_value}, "@keyobjectid") 
-                    missing_keys.append({"key": key, "reason": "missing", "example-sql": example_sql})
+                missing_keys.append({"key": key, "reason": "missing"})
             elif isinstance(req_value, dict):
                 if not isinstance(actual[key], dict):
                     missing_keys.append({"key": key, "reason":"expected a nested object"})

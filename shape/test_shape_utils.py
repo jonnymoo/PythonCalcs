@@ -54,16 +54,6 @@ def test_check_shape_missing_folder():
     assert len(missing_keys) == 1
     assert missing_keys[0]["key"] == "folder"
 
-    expected_example_sql = """
-    SELECT 
-    (SELECT  datejoinedcomp
-    FROM UPMFOLDER folder1
-    WHERE folder1.folderID = @keyobjectid
-    FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
-    FOR JSON PATH"""
-    assert "".join(missing_keys[0]["example-sql"].split()) == "".join(expected_example_sql.split())
-
-
 def test_create_sql():
     required_shape = {
         "folder": {
