@@ -54,7 +54,7 @@ def query_http(req: func.HttpRequest) -> func.HttpResponse:
         cursor.execute(sql, bind_vars)
         row = cursor.fetchone()
         return func.HttpResponse(
-          body=shape_utils.convert_lists_to_objects(row[0].get_json()),
+          body=json.dumps(shape_utils.convert_lists_to_objects(json.loads(row[0]))),
           status_code=200,
           mimetype="application/json")
 
