@@ -26,7 +26,7 @@ def validate_salary_records(data):
       inputs.current_date: Date object representing the current date.
 
   Returns:
-      outputs.all_present: True if there's at least one entry for each year, False otherwise.
+      outputs.validation_passed: True if there's at least one entry for each year, False otherwise.
   """
   
   # Convert salary records to a pandas DataFrame (assuming appropriate structure)
@@ -56,7 +56,7 @@ def validate_salary_records(data):
 
   return {
       "outputs": {
-          "all_present": str(all_present).lower(),
+          "validation_passed": str(all_present).lower(),
           "missing_years": missing_years
       }
   }

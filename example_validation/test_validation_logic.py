@@ -17,7 +17,7 @@ def test_validate_salary_records():
 
     expected_result = {
         "outputs": {
-            "all_present": "true",
+            "validation_passed": "true",
             "missing_years": []
         }
     }

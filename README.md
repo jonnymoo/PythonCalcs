@@ -59,7 +59,7 @@ An example of how to provide sample salary records and do some simple dataframe 
 ```json
 {
   "outputs": {
-    "all_present": "true", 
+    "validation_passed": "true", 
     "missing_years": []
   }
 }
