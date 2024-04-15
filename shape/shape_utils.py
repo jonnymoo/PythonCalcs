@@ -22,7 +22,19 @@ def shape(shape):
   """
   def decorator(func):
     def wrapped_func(data):
-      return validate_with_shape(func, shape, data)
+      # Top level should always be a dictionary of dictionaries
+      # If one of them is a list - we need to permutate and loop each one and create a list
+      # E.g. {folder:[...],inputs {...}}
+      # We would create a seperate call for each folder and call each validation on that folder with that input
+      if(any(isinstance(value, list) for value in data.values())):
+        list_key = next((key for key, value in data.items() if isinstance(value, list)),None)
+        list_values = data.pop(list_key)
+
+        # Create a list of dictionaries with all combinations of list elements
+        permutations = [{**data, list_key: item} for item in list_values]
+        return [validate_with_shape(func, shape, input) for input in permutations]
+      else:
+        return validate_with_shape(func, shape, data)
     return wrapped_func  
   return decorator
 
