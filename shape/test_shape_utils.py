@@ -1,5 +1,6 @@
 import pytest
 from shape import shape_utils
+import json
 
 def test_check_shape():
     data = {
@@ -205,7 +206,59 @@ def test_create_sql_top_level_list():
     sql,_ = shape_utils.create_sql(required_shape)
     assert "".join(sql.split()) == "".join(expected.split())
 
-def test_convert_to_object():
-    result = [{'convert_to_object_test': [{'convert_to_object_subobject':{'mything':'thingy'}}]}]
+def test_create_sql_two_objects():
+    required_shape = {
+        "folder": {
+            "payroll": {
+            "payrollname": None
+            },
+            "client": {
+            "clientname": None
+            }
+        }
+    }
+
+    expected = """
+    SELECT (SELECT TOP 1 (SELECT TOP 1 payrollname
+                        FROM UPMPAYROLL payroll2
+                        WHERE payroll2.payrollID = folder1.payrollID
+                        FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_payroll,
+                        (SELECT TOP 1 clientname
+                        FROM UPMCLIENT client2
+                        WHERE client2.clientID = folder1.clientID
+                        FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_client
+            FROM UPMFOLDER folder1
+            FOR JSON PATH, INCLUDE_NULL_VALUES) AS convert_to_object_folder 
+    FOR JSON PATH"""
+
+    sql,_ = shape_utils.create_sql(required_shape)
+    assert "".join(sql.split()) == "".join(expected.split())
+
+
+def test_convert_to_object_with_sub_list():
+    result = [{'convert_to_object_test': [{'convert_to_object_subobject':[{'mything':'thingy'}]}]}]
     converted = shape_utils.convert_lists_to_objects(result)
     assert converted == {'test': {'subobject':{'mything':'thingy'}}}
+
+def test_convert_to_object_with_sub_object():
+    result = [{"convert_to_object_folder":[{"convert_to_object_payroll":[{"payrollname":"Main Payroll"}],"convert_to_object_client":[{"clientname":"Test Client 1"}]}]}]
+    converted = shape_utils.convert_lists_to_objects(result)
+    assert converted == {"folder":{"payroll":{"payrollname":"Main Payroll"},"client":{"clientname":"Test Client 1"}}}
+
+
+def test_convert_to_object_no_converts():
+    result = [{"thing1": [{"thing2":"thing2val"}]}]
+    converted = shape_utils.convert_lists_to_objects(result)
+    assert converted == {"thing1": [{"thing2":"thing2val"}]}
+
+def test_convert_to_object_from_jsonloads_no_converts():
+    result = "[{\"thing1\": [{\"thing2\":\"thing2val\"}]}]"
+    result_json = json.loads(result)
+    converted = shape_utils.convert_lists_to_objects(result_json)
+    assert converted == {"thing1": [{"thing2":"thing2val"}]}
+
+def test_convert_object_from_jsonload():
+    result = "[{\"convert_to_object_folder\":[{\"datejoinedcomp\":\"1987-04-04T00:00:00\",\"salary\":[{\"datestarted\":\"2020-01-01T00:00:00\"}]}]}]"    
+    result_json = json.loads(result)
+    converted = shape_utils.convert_lists_to_objects(result_json)
+    assert converted == {"folder":{"datejoinedcomp":"1987-04-04T00:00:00","salary":[{"datestarted":"2020-01-01T00:00:00"}]}}

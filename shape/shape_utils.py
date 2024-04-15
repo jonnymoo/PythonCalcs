@@ -129,25 +129,23 @@ def create_sql(required_shape, id_param_name=None):
   nested_sql, nested_bindvars, _ = build_nested_sql(required_shape)
   return f"SELECT {nested_sql} FOR JSON PATH", nested_bindvars
 
-def convert_lists_to_objects(data):
-  """
-  Recursively converts nested lists to objects based on specific criteria.
+def convert_lists_to_objects(data,removelist=True):
+  # Looks for keys that begin with "convert_to_object_" and
+  # changes the values from lists with one entry to an object.
+  # This is helpful for processing data retrieved with build_nested_sql
+  if removelist and isinstance(data, list):
+    data = data[0] if len(data) > 0 else {}
 
-  Args:
-      data: The nested data structure to be converted.
-
-  Returns:
-      The converted data structure with lists replaced by objects under certain conditions.
-  """
   if isinstance(data, list):
-    # Check if the list contains a single element with a key starting with "convert_to_object_"
-    if len(data) == 1 and isinstance(data[0], dict):
-      key = next(iter(data[0]))  # Get the first key from the dictionary
-      if key.startswith("convert_to_object_"):
-        return {key[len("convert_to_object_"):]: convert_lists_to_objects(data[0][key])}
-    else:
-      # Recursively convert elements within the list
-      return [convert_lists_to_objects(item) for item in data]
-  else:
-    # Base case: return non-list data types as-is
-    return data
+    for i in range(len(data)):
+       data[i] = convert_lists_to_objects(data[i],False);
+  elif isinstance(data, dict):
+    newData = {}
+    for key, value in data.items():
+       if(key.startswith("convert_to_object_")):
+          newData[key[len("convert_to_object_"):]] = convert_lists_to_objects(value,True)
+       else:
+          newData[key] = convert_lists_to_objects(value,False)
+    data = newData
+   
+  return data
