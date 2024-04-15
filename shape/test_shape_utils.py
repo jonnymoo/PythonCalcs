@@ -279,3 +279,8 @@ def test_convert_object_from_jsonload():
     result_json = json.loads(result)
     converted = shape_utils.convert_lists_to_objects(result_json)
     assert converted == {"folder":{"datejoinedcomp":"1987-04-04T00:00:00","salary":[{"datestarted":"2020-01-01T00:00:00"}]}}
+
+def test_convert_empty_lists():
+    result = [{"emptything1": None}]
+    converted = shape_utils.convert_lists_to_objects(result)
+    assert converted == {"emptything1": []}

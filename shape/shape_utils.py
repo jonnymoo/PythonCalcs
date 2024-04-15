@@ -146,6 +146,10 @@ def convert_lists_to_objects(data,removelist=True):
   # Looks for keys that begin with "convert_to_object_" and
   # changes the values from lists with one entry to an object.
   # This is helpful for processing data retrieved with build_nested_sql
+
+  if data == None:
+     data = []
+
   if removelist and isinstance(data, list):
     data = data[0] if len(data) > 0 else {}
 
