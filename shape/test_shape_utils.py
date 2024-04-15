@@ -206,6 +206,23 @@ def test_create_sql_top_level_list():
     sql,_ = shape_utils.create_sql(required_shape)
     assert "".join(sql.split()) == "".join(expected.split())
 
+def test_create_sql_top_level_list_with_filter():
+    required_shape = {
+        'folder': [{'datejoinedcomp': None,
+                    'folderref': 'FRA4'}]}
+
+    expected = """
+    SELECT 
+        (SELECT datejoinedcomp
+        FROM UPMfolder folder1
+        WHERE folder1.folderref = %s
+        FOR JSON PATH, INCLUDE_NULL_VALUES) AS folder 
+    FOR JSON PATH"""
+
+    sql,bindvars = shape_utils.create_sql(required_shape)
+    assert "".join(sql.split()) == "".join(expected.split())
+    assert bindvars == ["FRA4"]
+
 def test_create_sql_two_objects():
     required_shape = {
         "folder": {

@@ -110,6 +110,7 @@ def create_sql(required_shape, id_param_name=None):
         if(root_alias):
           whereclauses.append(f"{alias}.{root_name}ID = {root_alias}.{root_name}ID")
 
+        whereclauses.extend(nested_filters)
         selected_columns.append(f"""
           (SELECT {nested_sql}
           FROM UPM{key} {alias}
