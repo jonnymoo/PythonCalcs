@@ -56,3 +56,55 @@ def test_validate_missing_fields():
     result = validation_logic.validate_salary_records(data)
 
     assert result == expected_result
+
+def test_validate_multiples():
+    data = {
+        "folder": [{
+            "datejoinedcomp": "2022-12-01",
+            "salary": [
+            {"datestarted": "2022-12-01"}
+            ]
+        },{
+            "datejoinedcomp": "2022-12-01",
+            "salary": [
+            {"datestarted": "2022-12-01"}
+            ]
+        }],
+        "inputs": {
+            "current_date": "2023-03-31"
+        }
+    }
+
+    expected_result = [{
+        "outputs": {
+            "validation_passed": "true",
+            "missing_years": []
+        }},{
+        "outputs": {
+            "validation_passed": "true",
+            "missing_years": []
+        }}]
+
+    result = validation_logic.validate_salary_records(data)
+    assert result == expected_result
+
+def test_validate_empty_salary():
+    data = {
+        "folder": {
+            "datejoinedcomp": "2022-12-01",
+            "salary": []
+        },
+        "inputs": {
+            "current_date": "2023-03-31"
+        }
+    }
+
+    expected_result = {
+        "outputs": {
+            "validation_passed": "false",
+            "missing_years": [2022]
+        }}
+
+    result = validation_logic.validate_salary_records(data)
+    assert result == expected_result
+

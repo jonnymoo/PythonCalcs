@@ -32,11 +32,6 @@ def validate_salary_records(data):
   # Convert salary records to a pandas DataFrame (assuming appropriate structure)
   df = pd.DataFrame(data['folder']['salary'])
 
-  # Extract the year for each record (assuming a 'date' column) - If before 1st April we go the year before
-  df['year'] = pd.to_datetime(df['datestarted']).dt.year \
-             - (pd.to_datetime(df['datestarted']).dt.month < 4)
-
-
   # Calculate the starting year (considering April 1st)
   start_date = datetime.fromisoformat(data['folder']['datejoinedcomp'])
   start_year = start_date.year - (start_date.month < 4)
@@ -45,14 +40,21 @@ def validate_salary_records(data):
 
   # Get the range of years to validate (inclusive)
   years_to_validate = range(start_year,  end_year + 1)
+  missing_years = [year for year in years_to_validate]
+  all_present = False
 
-  # Check if there's at least one entry for each year
-  yearly_entries = df.groupby('year').size()
+  # Extract the year for each record (assuming a 'date' column) - If before 1st April we go the year before
+  if not df.empty:
+    df['year'] = pd.to_datetime(df['datestarted']).dt.year \
+             - (pd.to_datetime(df['datestarted']).dt.month < 4)
 
-  # Identify missing years
-  missing_years = [year for year in years_to_validate if year not in yearly_entries.index]
+    # Check if there's at least one entry for each year
+    yearly_entries = df.groupby('year').size()
 
-  all_present = len(missing_years) == 0 and yearly_entries.all() > 0
+    # Identify missing years
+    missing_years = [year for year in years_to_validate if year not in yearly_entries.index]
+
+    all_present = len(missing_years) == 0 and yearly_entries.all() > 0
 
   return {
       "outputs": {
