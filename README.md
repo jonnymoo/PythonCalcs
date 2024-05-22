@@ -43,10 +43,10 @@ An example of how to provide sample salary records and do some simple dataframe 
 ```json
 {
   "folder": {
-    "date_joined_comp": "2022-12-01",
+    "datejoinedcomp": "2022-12-01",
     "salary": [
-      {"date_started": "2022-12-01"},
-      {"date_started": "2023-04-01"}
+      {"datestarted": "2022-12-01"},
+      {"datestarted": "2023-04-01"}
     ]
   },
   "inputs": {
