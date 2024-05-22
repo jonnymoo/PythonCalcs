@@ -36,6 +36,8 @@ Azure Functions Core Tools: Install the Azure Functions Core Tools following the
 
 ## Example: validate salary years
 
+This will be available at /api/validate
+
 An example of how to provide sample salary records and do some simple dataframe manipulation
 
 ### Example input
@@ -87,7 +89,9 @@ An example of how to provide sample salary records and do some simple dataframe 
 }
 ```
 
-### Example get data from SQL Server database
+## Example get data from SQL Server database
+
+This will available at /api/shape-query
 
 To do this you will need to set environment variables to connect to a shape database e.g.
 
@@ -96,3 +100,97 @@ export SHAPE_SERVER_NAME="mydatabaseserver" SHAPE_USER="myuser" SHAPE_USER_PASSW
 ```
 
 And then pass it a shape - tip, get this from the [shape builder](https://codepen.io/Jonny-Muir/full/XWQqqwy)
+
+### Example asking for data shape required for validation
+
+This is taking the required folder bit from above, and restricting it to a folderref of FR1
+
+```json
+{
+  "folder": {
+    "datejoinedcomp": null,
+    "salary": [
+      {
+        "datestarted": null
+      }
+    ],
+    "folderref": "FR1"
+  }
+}
+```
+
+### Example output for single folder
+
+```json
+{
+    "folder": {
+        "datejoinedcomp": "1970-01-01T00:00:00",
+        "salary": []
+    }
+}
+```
+
+Note this will just bring back a single row - if you wanted a list you need to make folder in to a list like so
+
+### Asking for lists
+
+```json
+{
+  "folder": [{
+    "datejoinedcomp": null,
+    "salary": [
+      {
+        "datestarted": null
+      }
+    ],
+    "folderref": "FR1"
+  }]
+}
+```
+
+### Example output for multiple folders
+
+```json
+{
+    "folder": [
+        {
+            "datejoinedcomp": "1970-01-01T00:00:00",
+            "salary": []
+        },
+        {
+            "datejoinedcomp": "1970-01-01T00:00:00",
+            "salary": []
+        },
+        {
+            "datejoinedcomp": "1970-01-01T00:00:00",
+            "salary": []
+        },
+        {
+            "datejoinedcomp": "1970-01-01T00:00:00",
+            "salary": []
+        },
+        {
+            "datejoinedcomp": "1970-01-01T00:00:00",
+            "salary": []
+        },
+        {
+            "datejoinedcomp": "1970-01-01T00:00:00",
+            "salary": []
+        },
+        {
+            "datejoinedcomp": "1970-01-01T00:00:00",
+            "salary": []
+        },
+        {
+            "datejoinedcomp": "1970-01-01T00:00:00",
+            "salary": []
+        },
+        {
+            "datejoinedcomp": "1970-01-01T00:00:00",
+            "salary": []
+        }
+    ]
+}
+```
+
+Why are there multiples - because the example database has mulitple clients - explore the shape builder to understand how you might also get the client back
